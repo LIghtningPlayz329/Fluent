@@ -1,0 +1,148 @@
+-- Define a whitelist of User IDs
+local whitelist = {
+    [12345678] = true, -- Replace with actual user IDs
+    [23456789] = true,
+    [34567890] = true,
+    [3087824341] = true, -- Added user IDs
+    [7452721073] = true,
+}
+
+-- Create a ScreenGui for the Loading Bar
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "LoadingGui"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create the loading rectangle frame
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Size = UDim2.new(0.6, 0, 0.45, 0) -- Size of the rectangle
+loadingFrame.Position = UDim2.new(0.2, 0, 0.3, 0) -- Centered in the middle of the screen
+loadingFrame.BackgroundTransparency = 0 -- Show the gradient
+loadingFrame.Parent = screenGui
+
+-- Create a UIGradient for the loading rectangle (light to dark blue gradient)
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 100, 255)), -- Light blue
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 139)) -- Very dark blue
+})
+gradient.Parent = loadingFrame
+
+-- Create a title for the loading screen
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, 0, 0.2, 0) -- Size of the title
+titleText.Position = UDim2.new(0, 0, 0.05, 0) -- Moved down
+titleText.BackgroundTransparency = 1 -- Transparent background
+titleText.Text = "Welcome to KynX"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text
+titleText.Font = Enum.Font.SourceSansBold -- Bold font
+titleText.TextScaled = true -- Scale text
+titleText.Parent = loadingFrame
+
+-- Create the loading bar (changed color to blue)
+local loadingBar = Instance.new("Frame")
+loadingBar.Size = UDim2.new(0.8, 0, 0.15, 0) -- Size of the loading bar
+loadingBar.Position = UDim2.new(0.1, 0, 0.43, 0) -- Moved down
+loadingBar.BackgroundColor3 = Color3.fromRGB(0, 0, 140) -- Blue color
+loadingBar.Parent = loadingFrame
+
+-- Add maximum rounded corners to the loading bar
+local loadingBarCorner = Instance.new("UICorner")
+loadingBarCorner.CornerRadius = UDim.new(1, 0) -- Maximum rounded corners
+loadingBarCorner.Parent = loadingBar
+
+-- Create a percentage text label for the loading bar
+local percentageText = Instance.new("TextLabel")
+percentageText.Size = UDim2.new(1, 0, 1, 0) -- Fill the loading bar
+percentageText.BackgroundTransparency = 1 -- Transparent background
+percentageText.Text = "0%"
+percentageText.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text
+percentageText.Font = Enum.Font.SourceSansBold -- Bold font
+percentageText.TextScaled = true -- Scale text
+percentageText.Parent = loadingBar
+
+-- Status messages to rotate
+local statusMessages = {
+    "Checking user preferences...",
+    "Establishing connections...",
+    "Finalizing layout...",
+    "Applying themes..."
+}
+
+-- Create a status text label
+local statusText = Instance.new("TextLabel")
+statusText.Size = UDim2.new(1, 0, 0.11, 0) -- Size of the status text
+statusText.Position = UDim2.new(0, 0, 0.65, 0) -- Positioned further down
+statusText.BackgroundTransparency = 1 -- Transparent background
+statusText.Text = "Loading Script"
+statusText.TextColor3 = Color3.fromRGB(255, 255, 255) -- White text
+statusText.Font = Enum.Font.SourceSans -- Regular font
+statusText.TextScaled = true -- Scale text
+statusText.Parent = loadingFrame
+
+-- Start a loop to change status messages every 1.2 seconds
+spawn(function()
+    math.randomseed(tick()) -- Seed for randomness
+    while true do
+        -- Check if the statusMessages table is not empty
+        if #statusMessages > 0 then
+            local randomIndex = math.random(1, #statusMessages) -- Generate a random index
+            statusText.Text = statusMessages[randomIndex] -- Choose a random message
+        end
+        wait(1.2) -- Change every 1.2 seconds
+    end
+end)
+
+-- Set loading bar to fixed size (100%)
+loadingBar.Size = UDim2.new(0.8, 0, 0.15, 0) -- Fixed size
+
+-- Update the percentage text
+for i = 1, 100 do
+    percentageText.Text = i .. "%" -- Update percentage text
+    wait(0.07) -- Simulate loading (changed to 0.07 seconds)
+end
+
+-- Function to enable infinite stamina
+local function enableInfiniteStamina()
+    local lplr = game.Players.LocalPlayer
+    lplr:SetAttribute("stamina", 1)
+
+    lplr:GetAttributeChangedSignal("stamina"):Connect(function()
+        if lplr:GetAttribute("stamina") ~= 1 then
+            lplr:SetAttribute("stamina", 1)
+        end
+    end)
+end
+
+-- Function to disable fall damage
+local function disableFallDamage()
+    local LocalPlayer = game.Players.LocalPlayer
+    if LocalPlayer and LocalPlayer.Character then
+        for _, desc in ipairs(LocalPlayer.Character:GetDescendants()) do
+            if desc:IsA("LocalScript") and desc.Name == "fallDamage" then
+                desc.Disabled = true
+                print("fallDamage LocalScript has been disabled.")
+                return
+            end
+        end
+    end
+end
+
+-- Function to modify teleport aura (increase speed and radius)
+local function modifyTeleportAura()
+    local teleportAura = game.Workspace:WaitForChild("TeleportAura") -- Assuming you have this part
+    teleportAura.OrbitSpeed = teleportAura.OrbitSpeed + 2 -- Increase orbit speed
+    teleportAura.Radius = teleportAura.Radius + 0.5 -- Increase orbit radius
+end
+
+-- Once loading is complete, execute the custom actions
+screenGui.Destroying:Connect(function()
+    enableInfiniteStamina() -- Enable infinite stamina
+    disableFallDamage() -- Disable fall damage
+    modifyTeleportAura() -- Increase teleport aura speed and radius
+end)
+
+-- Hide the loading screen after loading is complete
+screenGui.Enabled = false
+
+-- Unparent the loading GUI to clean up
+screenGui:Destroy()
